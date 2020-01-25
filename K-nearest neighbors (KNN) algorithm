@@ -1,0 +1,61 @@
+import numpy as np
+#import pamdas as pd
+#import scipy
+#import sklearn
+import matplotlib.pyplot as plt
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import mean_squared_error, r2_score
+
+
+# import some data to play with
+iris = load_iris()
+print('Shape of dataset: ',iris.data.shape)
+X = iris.data[:, :2]  # we only take the first two features.
+print('Shape of input data sets: ',X.shape)
+Y = iris.target
+
+# Split the data and  targets into training/testing sets
+Xtrain, Xtest, ytrain, ytest = train_test_split(X,
+                                                iris.target,
+                                                random_state = 3)
+
+# Create an instance of Logistic Regression Classifier and fit the data.
+n_neighbors = 5
+weights = 'uniform'
+##weights = 'distance'
+KNNClass = KNeighborsClassifier(n_neighbors=n_neighbors, weights=weights)
+KNNClass.fit(Xtrain, ytrain)
+
+# Make predictions using the testing set
+Ypred = KNNClass.predict(Xtest)
+
+# The mean squared error
+print('Root mean square error',np.sqrt(mean_squared_error(ytest,Ypred)))
+# Model score
+print('Regression score function.',r2_score(ytest,Ypred))
+# The coefficients and Bias [not in KNeighbors Classifier]
+# Model Accuracy
+print('Model Accuracy: %.2f' %(KNNClass.score(Xtest, ytest)*100))
+
+# Plot the decision boundary. For that, we will assign a color to each
+# point in the mesh [x_min, x_max]x[y_min, y_max].
+x_min, x_max = X[:, 0].min() - .5, X[:, 0].max() + .5
+y_min, y_max = X[:, 1].min() - .5, X[:, 1].max() + .5
+h = .02  # step size in the mesh
+xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
+Z = KNNClass.predict(np.c_[xx.ravel(), yy.ravel()])
+
+# Put the result into a color plot
+Z = Z.reshape(xx.shape)
+plt.figure(1, figsize=(4, 3))
+plt.pcolormesh(xx, yy, Z, cmap=plt.cm.Paired)
+
+# Plot also the training points
+plt.scatter(X[:, 0], X[:, 1], c=Y, edgecolors='k', cmap=plt.cm.Paired)
+plt.xlabel('Sepal length')
+plt.ylabel('Sepal width')
+plt.xlim(xx.min(), xx.max())
+plt.ylim(yy.min(), yy.max())
+plt.show()
